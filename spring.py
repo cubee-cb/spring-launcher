@@ -55,7 +55,8 @@ for d in listdir(search):
     "dir_name": d,
     "working_dir": working_dir,
     "exe_path": [],
-    "icon_path": []
+    "icon_path": [],
+    "active_proc": False,
   }
   for file in listdir(working_dir):
 
@@ -73,8 +74,8 @@ for d in listdir(search):
       continue
 
     # load icon file
-    elif "icon" in file_i:
-    # prioritise .png icons
+    elif "icon" in file_i or (d.lower() in file_i or path.splitext(file_i)[0] in d.lower()) and any(x in file_i for x in [".png", ".gif", ".jpg"]):
+      # prioritise .png icons
       if file_i.endswith(".png"):
         game["icon_path"].insert(0, p)
       else:
@@ -100,6 +101,24 @@ for d in listdir(search):
 games = sorted(games, key = lambda x: x["dir_name"].lower().replace("the", "", 1).strip(" _-."))
 
 def main():
+
+  def fit_text(surface, width):
+    return transform.smoothscale(surface, (min(surface.get_width(), width), surface.get_height()))
+
+  def round_rect(screen, rect, col, radius, fill = 0):
+    draw.rect(screen, col, rect, fill, radius, radius, radius, radius)
+
+  def notify(text):
+    nonlocal notification_time, notification_text, notification_size
+    print("[Notify]:", text)
+
+    notification_time = 300
+    notification_text = label_font.render(text, True, (255, 255, 255))
+    notification_size = label_font.size(text)
+
+
+
+  # init ui
   t = 0
 
   screen_width = 1280
@@ -126,8 +145,13 @@ def main():
   mouse_middle_last = False
 
   select = 0
+  last_hovered = 0
 
-  # init ui
+  notification_timeout = 300
+  notification_time = 0
+  notification_text = None
+  notification_size = (0, 0)
+
   clock = time.Clock()
   sound = True
 
@@ -175,10 +199,11 @@ def main():
   #missing_icon.blit(qmark, (qmark.get_width() / 2, qmark.get_height() / 2))
   missing_icon.blit(qmark, (20, 0))
 
-  missing_label = label_font.render("missing label", False, (255, 50, 50))
+  missing_label = label_font.render("missing label", True, (255, 50, 50))
 
 
   #subprocess.run(games[0].get("exe_path")[0])
+
 
 
   while True:
@@ -195,17 +220,20 @@ def main():
         
         # keypresses
         elif e.type == KEYDOWN:
-          use_mouse = False
-          if e.key == K_UP and select >= columns:
-            select -= columns
-          if e.key == K_DOWN and select <= len(games) - (columns + 1):
-            select += columns
-          if e.key == K_LEFT and select % columns > 0:
-            select -= 1
-          if e.key == K_RIGHT and select % columns < columns - 1:
-            select += 1
-          if e.key == K_RETURN:
-            run_game = True
+          if use_mouse:
+            select = last_hovered
+            use_mouse = False
+          else:
+            if e.key == K_UP and select >= columns:
+              select -= columns
+            if e.key == K_DOWN and select <= len(games) - (columns + 1):
+              select += columns
+            if e.key == K_LEFT and select % columns > 0:
+              select -= 1
+            if e.key == K_RIGHT and select % columns < columns - 1:
+              select += 1
+            if e.key == K_RETURN:
+              run_game = True
         
         # scrolling
         elif e.type == MOUSEWHEEL:
@@ -223,14 +251,24 @@ def main():
     mouse.set_visible(use_mouse)
 
 
+    # check running processes
+    for game in games:
+      if game["active_proc"]:
+        proc = game["active_proc"]
+        if proc.poll() is not None:
+          game["active_proc"] = False
+
+
     #select %= len(games)
 
     #button = math.clamp(button, 0, len(games[row].get("options") or {"none"}))
 
     t += 1
+    notification_time = max(notification_time - 1, 0)
 
     # draw
     screen.fill((50, 50, 50))
+
 
     entry_container_height = (margin * 2 + entry_height)
     entries_on_screen_y = screen_height / entry_container_height
@@ -249,16 +287,31 @@ def main():
       scroll_target = math.clamp(floor(floor(select / columns) - entries_on_screen_y / 2), 0, ceil(len(games) / columns) - entries_on_screen_y)
       scroll += (scroll_target - scroll) / 10
 
+
     idx = 0
+    if use_mouse:
+      select = -1
     for game in games:
       pos_x = margin + (idx % columns) * (margin * 2 + entry_width)
       pos_y = margin + floor(idx / columns) * entry_container_height - round(scroll * entry_container_height)
 
-
       # background card
-      selected = idx == select
       bg_rect = Rect(pos_x - margin / 2, pos_y - margin / 2, entry_width + margin, entry_height + margin)
+
+      # check overlap
+      if use_mouse and bg_rect.collidepoint(mouse_pos):
+        select = idx
+        last_hovered = idx
+        if mouse_left and not mouse_left_last:
+          run_game = True
+
+      selected = idx == select
+
       bg_colour = selected and (100, 100, 100) or (80, 80, 80)
+      # if the process is running, make it green
+      if game.get("active_proc"):
+        bg_colour = selected and (50, 150, 50) or (40, 120, 40)
+
       round_rect(screen, bg_rect, bg_colour, corner_radius, 0)
 
 
@@ -270,19 +323,16 @@ def main():
         text_width = entry_width - margin / 2 - entry_height
         screen.blit(fit_text(game.get("label_surface") or missing_label, text_width), (pos_x + entry_height + margin / 2, pos_y))
         screen.blit(fit_text(game.get("dir_surface") or missing_label, text_width), (pos_x + entry_height + margin / 2, pos_y + entry_height / 2))
-        screen.blit(transform.scale(icon, (entry_height, entry_height)), (pos_x, pos_y))
+        screen.blit(transform.smoothscale(icon, (entry_height, entry_height)), (pos_x, pos_y))
 
-        # selection border
+        # selected border
         if selected:
           round_rect(screen, bg_rect, (200, 200, 200), corner_radius, int(margin / 4))
           #screen.blit(transform.scale(icon, (entry_width + margin, entry_height + margin)), (pos_x - margin / 2, pos_y - margin / 2))
 
-      # check overlap for next frame (otherwise 2 may be selected)
-      if use_mouse and bg_rect.collidepoint(mouse_pos):
-        select = idx
-        if mouse_left and not mouse_left_last:
-          run_game = True
-
+        # running border
+        if game.get("active_proc"):
+          round_rect(screen, bg_rect, (255, 255, 255), corner_radius, 1)
 
 
       idx += 1
@@ -291,35 +341,57 @@ def main():
     if run_game:
       game = games[select]
 
-      # todo: menu to select executable
-      exe_path = game.get("exe_path")[0]
-      if len(game.get("exe_path")) > 1:
-        print("multiple executables, running", exe_path)
+      if game.get("active_proc"):
+        notify(game.get("name") + " is already running.")
 
-      print("Running", game.get("name"), "from", exe_path)
-      try:
-        if os_name == "Windows":
-          proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"), creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
-        elif os_name == "Linux":
-          proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"))
-          # todo: launch linux executables
-          #print("No linux native support yet (this is made for HeroicLauncher+Wine)")
-      except:
-        print("Run failed! Is this file valid?")
+      else:
+        # todo: menu to select executable
+        exe_path = game.get("exe_path")[0]
+        if len(game.get("exe_path")) > 1:
+          notify("Multiple executables, running: " + exe_path)
+        else:
+          notify("Running " + game.get("name") + " from " + exe_path)
 
+        try:
+          if os_name == "Windows":
+            proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"), creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
+            game["active_proc"] = proc
+          elif os_name == "Linux":
+            proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"))
+            game["active_proc"] = proc
+            # todo: launch linux executables
+            #print("No linux native support yet (this is made for HeroicLauncher+Wine)")
+        except:
+          notify("Run failed! Is this file valid?")
 
+    # notifications
+    if notification_time > 0 and notification_text:
+      text_width = notification_size[0]
+      text_height = notification_size[1]
+      height_from_bottom = text_height + margin * 2
+      pos_x = margin
+      pos_y = screen_height - height_from_bottom
+
+      transition_duration = 20
+
+      if notification_time < transition_duration:
+        pos_y = screen_height - height_from_bottom * (notification_time / transition_duration)
+
+      if notification_time > notification_timeout - transition_duration:
+        i = notification_timeout - notification_time
+        pos_y = screen_height - height_from_bottom * (i / transition_duration)
+
+      notify_rect = Rect(pos_x, pos_y, min(text_width + margin, screen_width - margin * 2), text_height + margin)
+
+      round_rect(screen, notify_rect, (100, 100, 100), corner_radius, 0)
+
+      screen.blit(fit_text(notification_text, screen_width - margin * 3), (pos_x + margin / 2, pos_y + margin / 2))
 
     display.flip()
     mouse_left_last = mouse_left
     mouse_right_last = mouse_right
     mouse_middle_last = mouse_middle
 
-
-def fit_text(surface, width):
-  return transform.scale(surface, (min(surface.get_width(), width), surface.get_height()))
-
-def round_rect(screen, rect, col, radius, fill = 0):
-  draw.rect(screen, col, rect, fill, radius, radius, radius, radius)
 
 if __name__ == "__main__":
   main()
