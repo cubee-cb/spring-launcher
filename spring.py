@@ -14,23 +14,41 @@ import platform
 from math import *
 from pygame import *
 from pygame.locals import *
-from os import path, listdir, access, X_OK
+from os import path, listdir, access, X_OK, makedirs
+
+frozen = getattr(sys, 'frozen', False)
 
 os_name = platform.system()
-base_folder = path.dirname(path.realpath(__file__))
-print("Running on", platform.system())
+print("Running on", platform.system(), frozen and "(frozen)" or "")
+res_root = path.dirname(path.realpath(__file__))
+exec_root = res_root
+
+# are we running in executable mode?
+if frozen:
+  exec_root = path.dirname(sys.executable)
+  #res_root = sys._MEIPASS
+
 
 def pretty_string(s):
   return s.replace("_", " ").replace("-", " ").capitalize()
 
 games = []
-search = base_folder
+search = path.join(exec_root, "games")
+
+if not path.isdir(search):
+  print("Search path", search, "does not exist, creating.")
+  try:
+    makedirs(search)
+  except:
+    print("Could not create path, exiting. Try creating it manually.")
+    sys.exit(1)
+
 print("Looking for games in", search)
 for d in listdir(search):
-  if not path.isdir(d):
-    continue
-
   working_dir = path.join(search, d)
+
+  if not path.isdir(working_dir):
+    continue
 
   game = {
     "name": pretty_string(d),
@@ -125,11 +143,11 @@ def main():
 
   # Setup the window
   display.set_caption("Spring")
-  display.set_icon(image.load(path.join(base_folder, "res", "icon.png")))
+  display.set_icon(image.load(path.join(res_root, "res", "icon.png")))
   screen = display.set_mode((screen_width, screen_height))
 
-  label_font = font.Font(path.join(base_folder, "res", "Lexend-Regular.ttf"), int((entry_height * 0.75) / 2))
-  icon_font = font.Font(path.join(base_folder, "res", "Lexend-Regular.ttf"), int(entry_height - 16))
+  label_font = font.Font(path.join(res_root, "res", "Lexend-Regular.ttf"), int((entry_height * 0.75) / 2))
+  icon_font = font.Font(path.join(res_root, "res", "Lexend-Regular.ttf"), int(entry_height - 16))
 
   # render labels and load icons
   for game in games:
@@ -279,12 +297,16 @@ def main():
         print("multiple executables, running", exe_path)
 
       print("Running", game.get("name"), "from", exe_path)
-      if os_name == "Windows":
-        proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"), creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
-      elif os_name == "Linux":
-        proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"))
-        # todo: launch linux executables
-        #print("No linux native support yet (this is made for HeroicLauncher+Wine)")
+      try:
+        if os_name == "Windows":
+          proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"), creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
+        elif os_name == "Linux":
+          proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"))
+          # todo: launch linux executables
+          #print("No linux native support yet (this is made for HeroicLauncher+Wine)")
+      except:
+        print("Run failed! Is this file valid?")
+
 
 
     display.flip()
