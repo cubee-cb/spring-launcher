@@ -1,10 +1,14 @@
 ### spring launcher
 
+![main screen](res/s-main.png)
+
 A simple Pygame-based app launcher for Linux and Windows. Mostly intended to be used with Heroic Games Launcher for bundling multiple similar games into one entry. (for example, multiple versions of the one game, or patched/modded copies)
 
 It's not designed to be particularly fancy (or safe? it just blindly loads things lol), but to simply get the job done. Let me know if you find any bugs!
 
 Supports keyboard (arrows + enter) and mouse.
+
+![launching metal slug](res/s-launched.png)
 
 Spring looks for `.exe` files on Windows, and any executable `.sh`, `.x86`, `.x86_64` file or executable files with no extension on Linux. If there are multiple found for a game, it just runs the first one it finds the moment.
 
