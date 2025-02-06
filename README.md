@@ -61,7 +61,7 @@ See [`build.sh`](build.sh) and [`build.bat`](build.bat) for `pyinstaller` comman
 Hmm, perhaps more specific?
 
 ### What does Spring mean?
-Honestly, I don't really know. You can use springs to launch stuff, far more simple than a rocket. SPrING is, uh, Simple Pygame... thING? Way better than calling it `launcher thingo` at least.
+Honestly, I don't really know. You can use springs to launch stuff, far more simple than a rocket. SPRING is, uh, Simple Pygame... launcheR thING? Way better than just calling it `launcher thingo` at least.
 
 ### What's the icon?
 A character I made named Rin. She's a witch. She has no relation to Spring other than now being the icon. I might make a proper icon eventually.
