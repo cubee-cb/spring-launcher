@@ -39,13 +39,13 @@ The `icon.png` and `name.txt` files are used for the UI, and are loaded case-ins
 - Name is a plaintext file whose first line is read and used as the title of the entry. If it doesn't exist, the name defaults to a slightly processed version of the parent directory's name.
 
 ### With Heroic (or similar launcher)
-Get Spring, either from Releases or build it yourself, then place a copy of Spring wherever you want to store the games. (It has to be copied for each game you use it with for now. Maybe a symlink works?)
-
-Then, go to Edit Game and point your game path to the Spring executable.
-
-Finally, put the games into their subfolders under `./games/` as described previously.
-
-Launching the game should now launch Spring, and if all goes well you should have some (probably slightly broken-looking) entries on display. Add Icons and Names where necessary.
+- Get Spring. Any of: a binary from Releases, clone the repo and use `spring.py` + `res/`, or build it yourself. Current `main` supports an absolute path argument for the folder to search, when run as `./spring /path/to/games`, otherwise, copy or symlink spring to the folder you want the games to be.
+  - Linux should be able to use `spring.py` directly in place of the binary, as long as Python3 and Pygame are installed and `res/` is in the same directory as `spring.py`.
+  - Windows users, idk, `python.exe .\spring.py C:\path\to\games` seems to work for me.
+- Then, go to Edit Game and point its game path to the Spring executable.
+- Finally, add the path to the folder containing the games into game arguments on the Game Settings panel, or put the games into `./games/` as described previously.
+- Launching the game from the launcher should now launch Spring, and if all goes well you should have some (probably slightly broken-looking) entries on display. Add Icons and Names where necessary.
+  - Spring only searches one folder deep, so you may need to make launch scripts for games that are stored in deeper subfolders.
 
 ## Running / Building executable
 
