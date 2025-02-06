@@ -39,15 +39,24 @@ def pretty_string(s):
 games = []
 search = path.join(exec_root, "games")
 
-if not path.isdir(search):
-  print("Search path", search, "does not exist, creating.")
-  try:
-    makedirs(search)
-  except:
-    print("Could not create path, exiting. Try creating it manually.")
+# use argument as path
+if len(sys.argv) > 1:
+  search = sys.argv[1]
+  if not path.isdir(search):
+    print("Search path", search, "does not exist! Exiting.")
     sys.exit(1)
 
-print("Looking for games in", search)
+# only create the path if using the default one
+else:
+  if not path.isdir(search):
+    print("Search path", search, "does not exist, creating.")
+    try:
+      makedirs(search)
+    except:
+      print("Could not create path, exiting. Try creating it manually.")
+      sys.exit(1)
+
+print("Looking for", os_name, "games in", search)
 for d in listdir(search):
   working_dir = path.join(search, d)
 
@@ -352,8 +361,6 @@ def main():
           elif os_name == "Linux":
             proc = popen([exe_path], cwd = game.get("working_dir"))
             game["active_proc"] = proc
-            # todo: launch linux executables
-            #print("No linux native support yet (this is made for HeroicLauncher+Wine)")
         except:
           notify("Run failed! Is this file valid?")
 
