@@ -40,8 +40,8 @@ The `icon.png` and `name.txt` files are used for the UI, and are loaded case-ins
 
 ### With Heroic (or similar launcher)
 - Get Spring. Any of: a binary from Releases, clone the repo and use `spring.py` + `res/`, or build it yourself. Current `main` supports an absolute path argument for the folder to search, when run as `./spring /path/to/games`, otherwise, copy or symlink spring to the folder you want the games to be.
-  - Linux should be able to use `spring.py` directly in place of the binary, as long as Python3 and Pygame are installed and `res/` is in the same directory as `spring.py`.
-  - Windows users, idk, `python.exe .\spring.py C:\path\to\games` seems to work for me.
+  - Linux: should be able to use `spring.py` directly in place of the binary, as long as Python3 and Pygame are installed and `res/` is in the same directory as `spring.py`.
+  - Windows/Wine: `.\spring.exe  C:\path\to\games` and `python.exe .\spring.py C:\path\to\games` seem to work for me.
 - Then, go to Edit Game and point its game path to the Spring executable.
 - Finally, add the path to the folder containing the games into game arguments on the Game Settings panel, or put the games into `./games/` as described previously.
 - Launching the game from the launcher should now launch Spring, and if all goes well you should have some (probably slightly broken-looking) entries on display. Add Icons and Names where necessary.
