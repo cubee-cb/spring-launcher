@@ -4,7 +4,7 @@
 
 A simple Pygame-based app launcher for Linux and Windows. Mostly intended to be used with Heroic Games Launcher for bundling multiple similar games into one entry. (for example, multiple versions of the one game, or patched/modded copies)
 
-It's not designed to be particularly fancy (it just blindly loads things lol), but instead to simply replace my use of [Remote Play Detached](https://github.com/smaTc/RemotePlayDetached) for Windows stuff with something more automated and cross-platform. Let me know if you find any bugs!
+It's not designed to be particularly fancy (it just blindly loads things lol), but instead to simply replace my use of [Remote Play Detached](https://github.com/smaTc/RemotePlayDetached) for this with something more automated and responsive. Let me know if you find any bugs!
 
 Supports keyboard (arrows + enter) and mouse.
 
