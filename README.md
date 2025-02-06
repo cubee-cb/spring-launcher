@@ -39,7 +39,7 @@ The `icon.png` and `name.txt` files are used for the UI, and are loaded case-ins
 - Name is a plaintext file whose first line is read and used as the title of the entry. If it doesn't exist, the name defaults to a slightly processed version of the parent directory's name.
 
 ### With Heroic (or similar launcher)
-You might have to build into an executable first (particularly for Wine instances), then place a copy of Spring wherever you want to store the games. (It has to be copied for each game you use it with for now. Maybe a symlink works?)
+Get Spring, either from Releases or build it yourself, then place a copy of Spring wherever you want to store the games. (It has to be copied for each game you use it with for now. Maybe a symlink works?)
 
 Then, go to Edit Game and point your game path to the Spring executable.
 
@@ -53,7 +53,7 @@ Spring uses `pygame`, which can be installed with `pip install pygame`. Afterwar
 
 Building an executable requires PyInstaller or similar. (PyInstaller is just what I used)
 
-Not quite small note, PyInstaller doesn't support cross-compilation, so ironically you will need a Windows machine/VM in order to build Spring for use with with Wine. (alternatively, i learn how to make github releases)
+Not quite small note, PyInstaller doesn't support cross-compilation, so ironically you will need either a Windows machine or to run Windows PyInstaller through Wine in order to build Spring for use with Wine.
 
 See [`build.sh`](build.sh) and [`build.bat`](build.bat) for `pyinstaller` commands.
 
