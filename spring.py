@@ -9,19 +9,23 @@ Simple Pygame launcher for loading executables in subdirectories.
 """
 
 import sys
-import subprocess
-import platform
-from math import *
+from os import path, listdir, makedirs, access, X_OK
+from platform import system
+from subprocess import Popen as popen
+from math import floor, ceil
 from pygame import *
 from pygame.locals import *
-from os import path, listdir, access, X_OK, makedirs
 
 frozen = getattr(sys, 'frozen', False)
 
-os_name = platform.system()
-print("Running on", platform.system(), frozen and "(frozen)" or "")
+os_name = system()
+print("Running on", system(), frozen and "(frozen)" or "")
 res_root = path.dirname(path.realpath(__file__))
 exec_root = res_root
+
+# windows-specific imports
+if os_name == "Windows":
+  from subprocess import CREATE_NEW_PROCESS_GROUP, DETACHED_PROCESS
 
 # are we running in executable mode?
 if frozen:
@@ -158,12 +162,6 @@ def main():
   init()
   display.init()
   font.init()
-  try:
-      mixer.init()
-  except:
-      sound = False
-      print("Failed to init mixer, sound disabled")
-
 
   # Setup the window
   display.set_caption("Spring")
@@ -187,11 +185,10 @@ def main():
 
 
   # generate assets
-  icon_mask = Surface((entry_height, entry_height))
-  icon_mask.fill((0, 0, 0))
-  round_rect(icon_mask, Rect(0, 0, entry_height, entry_height), (255, 255, 255), corner_radius)
-  icon_mask = mask.from_threshold(icon_mask, (255, 255, 255))
-
+  #icon_mask = Surface((entry_height, entry_height))
+  #icon_mask.fill((0, 0, 0))
+  #round_rect(icon_mask, Rect(0, 0, entry_height, entry_height), (255, 255, 255), #corner_radius)
+  #icon_mask = mask.from_threshold(icon_mask, (255, 255, 255))
 
   missing_icon = Surface((entry_height, entry_height))
   missing_icon.fill((255, 120, 120))
@@ -200,10 +197,6 @@ def main():
   missing_icon.blit(qmark, (20, 0))
 
   missing_label = label_font.render("missing label", True, (255, 50, 50))
-
-
-  #subprocess.run(games[0].get("exe_path")[0])
-
 
 
   while True:
@@ -354,10 +347,10 @@ def main():
 
         try:
           if os_name == "Windows":
-            proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"), creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP)
+            proc = popen([exe_path], cwd = game.get("working_dir"), creationflags = DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP)
             game["active_proc"] = proc
           elif os_name == "Linux":
-            proc = subprocess.Popen([exe_path], cwd = game.get("working_dir"))
+            proc = popen([exe_path], cwd = game.get("working_dir"))
             game["active_proc"] = proc
             # todo: launch linux executables
             #print("No linux native support yet (this is made for HeroicLauncher+Wine)")
